@@ -17,6 +17,7 @@ import socket
     
 try:
     cs = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    cs2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     print("[C]: Client socket created")
 except socket.error as err:
     print('socket open error: {} \n'.format(err))
@@ -43,7 +44,9 @@ cs.connect(rsServer_binding)
 msg = cs.recv(1024)
 print("[C]: Data received from server: {}".format(msg.decode('utf-8')))
 
-#Temporary solution for switching sockets 
+"""
+[REDACTED] We might need it so I'm leaving it 
+Temporary solution for switching sockets 
 cs.close()
 cs = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 flag = msg.decode('utf-8').split()[0]
@@ -51,7 +54,12 @@ if flag == "[RS]":
     cs.connect(tsServer_binding)
 else:
     cs.connect(rsServer_binding)
-msg = cs.recv(1024)
+
+"""
+
+#Nvm this method works
+cs2.connect(tsServer_binding)
+msg = cs2.recv(1024)
 print("[C]: Data received from server: {}".format(msg.decode('utf-8')))
 cs.close()
 exit()
