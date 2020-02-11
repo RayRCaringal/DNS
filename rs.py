@@ -1,5 +1,10 @@
 #RS
 
+import sys
+import os
+import time
+import random
+import socket
 
 #Stores Flag and Ip so it can be used in Key:Value pair dict 
 class vals:
@@ -28,12 +33,12 @@ try:
 except socket.error as err:
     print('socket open error: {}\n'.format(err))
     exit()
-server_binding = ('', sys.argv[1])
+server_binding = ('', int(sys.argv[1]))
 ss.bind(server_binding)
 ss.listen(5)
 
 #Listen forever 
-msg = "Connected to Root DNS"
+msg = "[RS] Connected to Root DNS"
 while True:
     clientsocket, addr = ss.accept()
     print ("[S]: Got a connection request from a client at {}".format(addr))

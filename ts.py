@@ -38,7 +38,7 @@ ss.bind(server_binding)
 ss.listen(5)
 
 #Listen forever 
-msg = "Connected to Top-Level DNS"
+msg = "[TS] Connected to Top-Level DNS"
 while True:
     clientsocket, addr = ss.accept()
     print ("[S]: Got a connection request from a client at {}".format(addr))
