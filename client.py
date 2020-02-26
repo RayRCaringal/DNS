@@ -61,7 +61,10 @@ else:
 cs2.connect(tsServer_binding)
 msg = cs2.recv(1024)
 print("[C]: Data received from server: {}".format(msg.decode('utf-8')))
+msg = "Test message"
+cs.send(msg.encode('utf-8'))
 cs.close()
+cs2.close()
 exit()
 
 

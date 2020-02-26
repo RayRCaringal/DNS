@@ -5,12 +5,21 @@ import os
 import time
 import random
 import socket
+import threading
 
 #Stores Flag and Ip so it can be used in Key:Value pair dict 
 class vals:
     def __init__(self,ip, flag):
         self.ip = ip
         self.flag = flag
+
+
+def run():
+    clientsocket.send(msg.encode('utf-8'))
+    reply = clientsocket.recv(1024)
+    print(reply.decode('utf-8'))
+
+    
 
 #Creates Table 
 table = {}
@@ -25,6 +34,7 @@ if os.path.isfile(path):
 #Example on how to retrieve ip and flag 
 #print(table.get("grep.cs.princeton.edu").ip)
 #print(table.get("grep.cs.princeton.edu").flag)
+    
 
 #Create Server Socket
 try:
@@ -35,14 +45,15 @@ except socket.error as err:
     exit()
 server_binding = ('', int(sys.argv[1]))
 ss.bind(server_binding)
-ss.listen(5)
-
 #Listen forever 
 msg = "[RS] Connected to Root DNS"
 while True:
+    ss.listen(5)
     clientsocket, addr = ss.accept()
     print ("[S]: Got a connection request from a client at {}".format(addr))
-    clientsocket.send(msg.encode('utf-8'))
+    newThread = threading.Thread(target=run)
+    newThread.start()
+    
 
 ss.close()
 exit()
