@@ -17,19 +17,34 @@ class vals:
 def run():
     clientsocket.send(msg.encode('utf-8'))
     reply = clientsocket.recv(1024)
-    print(reply.decode('utf-8'))
+    hostName = reply.decode('utf-8')
+    print ("[RS]: Request from a client for hostname " + hostName)
+    if hostName in table:
+        if table.get(hostName).flag is 'A':
+            print ("[RS]: Hostname " + hostName + " found sending IP Address to Client")
+            clientsocket.send((table.get(hostName).ip).encode('utf-8'))
+        else:
+             print ("[RS]: Hostname " + hostName + " not found returning Top-Level DNS Address")
+             clientsocket.send(NSFlag.encode('utf-8'))
+    else: 
+        print ("[RS]: Hostname " + hostName + " not found returning Top-Level DNS Address")
+        clientsocket.send(NSFlag.encode('utf-8'))
 
     
 
 #Creates Table 
 table = {}
+NSFlag = ""
 path = os.path.dirname(os.path.realpath('__file__')) + '\PROJI-DNSRS.txt' 
 if os.path.isfile(path):
     with open(path, 'r') as f:
         for line in f:
             items = line.split()
-            val = vals(items[1], items[2])
-            table[items[0]] = val
+            if items[2] is 'A':
+                val = vals(items[1], items[2])
+                table[items[0]] = val
+            else:
+                NSFlag = items[0]
 
 #Example on how to retrieve ip and flag 
 #print(table.get("grep.cs.princeton.edu").ip)
@@ -39,7 +54,7 @@ if os.path.isfile(path):
 #Create Server Socket
 try:
     ss = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    print("[S]: Server socket created")
+    print("[RS]: Server socket created")
 except socket.error as err:
     print('socket open error: {}\n'.format(err))
     exit()
@@ -50,10 +65,9 @@ msg = "[RS] Connected to Root DNS"
 while True:
     ss.listen(5)
     clientsocket, addr = ss.accept()
-    print ("[S]: Got a connection request from a client at {}".format(addr))
+    print ("[RS]: Got a connection request from a client at {}".format(addr))
     newThread = threading.Thread(target=run)
     newThread.start()
     
-
 ss.close()
 exit()

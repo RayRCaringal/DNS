@@ -16,7 +16,15 @@ class vals:
 def run():
     clientsocket.send(msg.encode('utf-8'))
     reply = clientsocket.recv(1024)
-    print(reply.decode('utf-8'))
+    hostName = reply.decode('utf-8')
+    print ("[TS]: Request from a client for hostname " + hostName)
+    if hostName in table:
+        print ("[TS]: Hostname " + hostName + " found sending IP Address to Client")
+        clientsocket.send((table.get(hostName).ip).encode('utf-8'))
+    else: 
+        print ("[TS]: Hostname " + hostName + " not found")
+        error = "Error:HOST NOT FOUND"
+        clientsocket.send(error.encode('utf-8'))
 
 #Creates Table 
 table = {}
@@ -35,7 +43,7 @@ if os.path.isfile(path):
 #Create Server Socket
 try:
     ss = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    print("[S]: Server socket created")
+    print("[TS]: Server socket created")
 except socket.error as err:
     print('socket open error: {}\n'.format(err))
     exit()
@@ -47,7 +55,8 @@ msg = "[TS] Connected to Top-Level DNS"
 while True:
     ss.listen(5)
     clientsocket, addr = ss.accept()
-    print ("[S]: Got a connection request from a client at {}".format(addr))
+    print ("[TS]: Got a connection request from a client at {}".format(addr))
+    #Acknowledgement 
     clientsocket.send(msg.encode('utf-8'))
     newThread = threading.Thread(target=run)
     newThread.start()
