@@ -34,7 +34,7 @@ def run():
 
 #Creates Table 
 table = {}
-NSFlag = ""
+NSFlag = "[NS] "
 path = os.path.dirname(os.path.realpath('__file__')) + '\PROJI-DNSRS.txt' 
 if os.path.isfile(path):
     with open(path, 'r') as f:

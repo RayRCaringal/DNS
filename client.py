@@ -14,7 +14,6 @@ import time
 import random
 import socket
 
-    
 try:
     cs = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     cs2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -24,47 +23,54 @@ except socket.error as err:
     exit()
         
 # Define the port on which you want to connect to the server
+rsHostname = sys.argv[0]
 rsListenPort = int(sys.argv[2])
 tsListenPort = int(sys.argv[3])
-localhost_addr = socket.gethostbyname(socket.gethostname())
+RS_addr = ""
+if rsHostname is "localhost":
+    RS_addr = socket.gethostbyname(socket.gethostname())
+else:
+    RS_addr = socket.gethostbyname(rsHostname)
 
+tsConnected = false
 
-rsServer_binding = (localhost_addr, rsListenPort)
-tsServer_binding = (localhost_addr, tsListenPort)
-
-print(rsServer_binding)
-print(tsServer_binding)
+rsServer_binding = (RS_addr, rsListenPort)
 
 #Connect to Root Server first 
 cs.connect(rsServer_binding)
 
-
-#Use cs.connect(tsServer_binding) to switch connection when necessary 
-
+#Receive Acknowledgement 
 msg = cs.recv(1024)
 print("[C]: Data received from server: {}".format(msg.decode('utf-8')))
 
-"""
-[REDACTED] We might need it so I'm leaving it 
-Temporary solution for switching sockets 
-cs.close()
-cs = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-flag = msg.decode('utf-8').split()[0]
-if flag == "[RS]":
-    cs.connect(tsServer_binding)
-else:
-    cs.connect(rsServer_binding)
+#Begin Search
+path = os.path.dirname(os.path.realpath('__file__')) + '\PROJI-HNS.txt'
+if os.path.isfile(path):
+    with open(path, 'r') as f:
+        for address in f:
+            cs.send(address.encode('utf-8'))
+            msg = cs.recv(1024).decode('utf-8') 
+            table = msg.split()
+            if table[0] is "[NS]":
+                print("[C]: Address not found in Root Server, entering Top-Level DNS: " + table[1])
+                if tsConnected is false:
+                    if table[1] is "localhost":
+                        TS_addr = socket.gethostbyname(socket.gethostname())
+                    else:
+                        TS_addr = socket.gethostbyname(table[1])
+                    tsServer_binding = (TS_addr, tsListenPort)
+                    cs2.connect(tsServer_binding)
+                    tsConnected = true
+                cs2.send(address.encode('utf-8'))
+                msg = cs2.recv(1024).decode('utf-8')
+                if table[0] is "Error:HOST NOT FOUND":
+                    print("[C]: Error Host not Found ")
+                else:
+                    print("Save proper address ")
+            else:
+                print("Save proper address ")
 
-"""
 
-#Nvm this method works
-cs2.connect(tsServer_binding)
-msg = cs2.recv(1024)
-print("[C]: Data received from server: {}".format(msg.decode('utf-8')))
-msg = sys.argv[1]
-cs.send(msg.encode('utf-8'))
-msg = cs.recv(1024)
-print("[C]: Data received from server: {}".format(msg.decode('utf-8')))
 cs.close()
 cs2.close()
 exit()
