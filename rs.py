@@ -16,21 +16,25 @@ class vals:
 
 def run():
     clientsocket.send(msg.encode('utf-8'))
-    reply = clientsocket.recv(1024)
-    hostName = reply.decode('utf-8')
-    print ("[RS]: Request from a client for hostname " + hostName)
-    if hostName in table:
-        if table.get(hostName).flag is 'A':
-            print ("[RS]: Hostname " + hostName + " found sending IP Address to Client")
-            clientsocket.send((table.get(hostName).ip).encode('utf-8'))
-        else:
-             print ("[RS]: Hostname " + hostName + " not found returning Top-Level DNS Address")
-             clientsocket.send(NSFlag.encode('utf-8'))
-    else: 
-        print ("[RS]: Hostname " + hostName + " not found returning Top-Level DNS Address")
-        clientsocket.send(NSFlag.encode('utf-8'))
+    EOF = 1
+    while EOF is not 0:
+        print("[RS]: Waiting on Client")
+        reply = clientsocket.recv(1024)
+        hostName = reply.decode('utf-8').rstrip().casefold()
+        if hostName =="eof":
+            return 
+        print ("[RS]: Request from a client for hostname " + hostName)
+        if hostName in table:
+            if table.get(hostName).flag is 'A':
+                print ("[RS]: Hostname " + hostName + " found sending IP Address " +table.get(hostName).ip+ " to Client")
+                clientsocket.send((table.get(hostName).ip).encode('utf-8'))
+            else:
+                print ("[RS]: Hostname " + hostName + " not found returning Top-Level DNS Address")
+                clientsocket.send(NSFlag.encode('utf-8'))
+        else: 
+            print ("[RS]: Hostname " + hostName + " not found returning Top-Level DNS Address")
+            clientsocket.send(NSFlag.encode('utf-8'))
 
-    
 
 #Creates Table 
 table = {}
@@ -44,7 +48,7 @@ if os.path.isfile(path):
                 val = vals(items[1], items[2])
                 table[items[0]] = val
             else:
-                NSFlag = items[0]
+                NSFlag += items[0]
 
 #Example on how to retrieve ip and flag 
 #print(table.get("grep.cs.princeton.edu").ip)

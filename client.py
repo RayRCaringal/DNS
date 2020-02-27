@@ -23,7 +23,7 @@ except socket.error as err:
     exit()
         
 # Define the port on which you want to connect to the server
-rsHostname = sys.argv[0]
+rsHostname = sys.argv[1]
 rsListenPort = int(sys.argv[2])
 tsListenPort = int(sys.argv[3])
 RS_addr = ""
@@ -32,7 +32,7 @@ if rsHostname is "localhost":
 else:
     RS_addr = socket.gethostbyname(rsHostname)
 
-tsConnected = false
+tsConnected = 0
 
 rsServer_binding = (RS_addr, rsListenPort)
 
@@ -47,30 +47,42 @@ print("[C]: Data received from server: {}".format(msg.decode('utf-8')))
 path = os.path.dirname(os.path.realpath('__file__')) + '\PROJI-HNS.txt'
 if os.path.isfile(path):
     with open(path, 'r') as f:
+        result = ""
         for address in f:
+            print("[C]: Searching for hostname " + address.rstrip())
+            result += address.rstrip()
             cs.send(address.encode('utf-8'))
             msg = cs.recv(1024).decode('utf-8') 
             table = msg.split()
-            if table[0] is "[NS]":
+            if table[0] == "[NS]":
                 print("[C]: Address not found in Root Server, entering Top-Level DNS: " + table[1])
-                if tsConnected is false:
-                    if table[1] is "localhost":
+                if tsConnected is 0:
+                    if table[1] == "localhost":
                         TS_addr = socket.gethostbyname(socket.gethostname())
                     else:
                         TS_addr = socket.gethostbyname(table[1])
                     tsServer_binding = (TS_addr, tsListenPort)
                     cs2.connect(tsServer_binding)
-                    tsConnected = true
+                    tsConnected = 1
                 cs2.send(address.encode('utf-8'))
                 msg = cs2.recv(1024).decode('utf-8')
-                if table[0] is "Error:HOST NOT FOUND":
+                if msg is "Error:HOST NOT FOUND":
                     print("[C]: Error Host not Found ")
+                    result += " - Error:HOST NOT FOUND\n"
                 else:
-                    print("Save proper address ")
+                    print("[C]: Address found saving IP Address " + table[0] + " to RESOLVED.txt")
+                    result += " " + msg + " A\n"
             else:
-                print("Save proper address ")
+                print("[C]: Address found saving IP Address " + table[0] + " to RESOLVED.txt")
+                result += " " + table[0] + " A\n"
+        msg = "EOF"
+        cs.send(msg.encode('utf-8'))
+        print("[C]: Creating text file")
+        f = open("RESOLVED.TXT", 'w')
+        f.write(result)
+        f.close()
 
-
+print("[C]: Closing Sockets")
 cs.close()
 cs2.close()
 exit()
