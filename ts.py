@@ -15,17 +15,23 @@ class vals:
 
 def run():
     clientsocket.send(msg.encode('utf-8'))
-    reply = clientsocket.recv(1024)
-    hostName = reply.decode('utf-8')
-    print ("[TS]: Request from a client for hostname " + hostName)
-    if hostName in table:
-        print ("[TS]: Hostname " + hostName + " found sending IP Address to Client")
-        clientsocket.send((table.get(hostName).ip).encode('utf-8'))
-    else: 
-        print ("[TS]: Hostname " + hostName + " not found")
-        error = "Error:HOST NOT FOUND"
-        clientsocket.send(error.encode('utf-8'))
-
+    EOF = 1
+    while EOF is not 0:
+        print("[TS]: Waiting on Client")
+        reply = clientsocket.recv(1024)
+        hostName = reply.decode('utf-8').rstrip().lower()
+        if hostName == "eof":
+            print ("[TS]: Exiting a client at {}".format(addr))
+            return
+        print ("[TS]: Request from a client for hostname " + hostName)
+        if hostName in table:
+            print ("[TS]: Hostname " + hostName + " found sending IP Address " + table.get(hostName).ip + " to Client")
+            clientsocket.send((table.get(hostName).ip).encode('utf-8'))
+        else:
+            print ("[TS]: Hostname " + hostName + " not found returning error")
+            error = "Error:HOST NOT FOUND"
+            clientsocket.send(error.encode('utf-8'))
+    
 #Creates Table 
 table = {}
 path = os.path.dirname(os.path.realpath('__file__')) + '\PROJI-DNSTS.txt' 
@@ -37,7 +43,7 @@ if os.path.isfile(path):
             table[items[0]] = val
 
 #Example on how to retrieve ip and flag 
-#print(table.get("grep.cs.princeton.edu").ip)
+#print(table.get("www.ibm.edu").ip)
 #print(table.get("grep.cs.princeton.edu").flag)
 
 #Create Server Socket
@@ -57,7 +63,6 @@ while True:
     clientsocket, addr = ss.accept()
     print ("[TS]: Got a connection request from a client at {}".format(addr))
     #Acknowledgement 
-    clientsocket.send(msg.encode('utf-8'))
     newThread = threading.Thread(target=run)
     newThread.start()
 

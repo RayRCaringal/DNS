@@ -22,6 +22,7 @@ def run():
         reply = clientsocket.recv(1024)
         hostName = reply.decode('utf-8').rstrip().casefold()
         if hostName =="eof":
+            print ("[RS]: Exiting client at {}".format(addr))
             return 
         print ("[RS]: Request from a client for hostname " + hostName)
         if hostName in table:
